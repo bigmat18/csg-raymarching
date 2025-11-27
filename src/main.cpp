@@ -52,9 +52,6 @@ int main(int argc, char** argv) {
     etugl::Program program(path/"vert.glsl", path/"frag.glsl"); 
 
     program.bind(); 
-    program.set_vec2f("u_Resolution",
-        etugl::vec2f((float)camera.width(), (float)camera.height())
-    );
 
     size_t num_primitives = primitives.size(); 
     LOG_INFO("Setting up {} primitives from JSON", num_primitives);
@@ -84,6 +81,10 @@ int main(int argc, char** argv) {
         program.set_mat4f("u_View", view);
         program.set_mat4f("u_InvView", glm::inverse(view));
         program.set_mat4f("u_Projection", projection); 
+
+        program.set_vec2f("u_Resolution",
+            etugl::vec2f((float)camera.width(), (float)camera.height())
+        );
 
         vao.draw();
 

@@ -1,6 +1,6 @@
 #include "json.hpp"
 
-etugl::mat4f Primitive::json_to_mat4(const nlohmann::json& json_matrix) {
+etugl::mat4f Primitive::json_to_mat4(const nh::json& json_matrix) {
     etugl::mat4f mat(1.0f);
     if (json_matrix.is_array() && json_matrix.size() == 4) {
         for (int i = 0; i < 4; ++i) {
@@ -14,7 +14,7 @@ etugl::mat4f Primitive::json_to_mat4(const nlohmann::json& json_matrix) {
     return mat;
 }
 
-etugl::vec4f Primitive::json_to_vec4(const nlohmann::json& json_vector) {
+etugl::vec4f Primitive::json_to_vec4(const nh::json& json_vector) {
     if (json_vector.is_array() && json_vector.size() == 4) {
         return etugl::vec4f(
             json_vector[0].get<float>(),
@@ -47,10 +47,10 @@ bool format_json(const std::filesystem::path& file_path,
         return false;
     }
 
-    nlohmann::json parsed_json;
+    nh::json parsed_json;
     try {
         file_stream >> parsed_json;
-    } catch (const nlohmann::json::parse_error& e) {
+    } catch (const nh::json::parse_error& e) {
         std::string error = e.what();
         LOG_ERROR("JSON parsing error in file {}: {}", file_path_str, error);
         return false;

@@ -1,4 +1,4 @@
-#include <Buffers.hpp>
+#include <Buffers.hpp> 
 #include <Program.hpp>
 #include <Types.hpp>
 #include <VertexArray.hpp>
@@ -7,6 +7,7 @@
 #include <filesystem> 
 #include <vector> 
 
+#include "glm/matrix.hpp"
 #include "json_import.hpp"
 
 static const std::vector<float> vertices = {
@@ -30,12 +31,11 @@ int main (int argc, char** argv) {
     std::vector<std::vector<int>> children;
 
     formatJsonFileToVectors(
-        path/"test.json", 
+        path/"scene_small.json",
         primitives, nodes,
         parent, children 
     ); 
 
-    // Window creation with OpenGL context 
     etugl::Window window = etugl::WinPerspective({
         .m_Width = 800, 
         .m_Height = 800,
@@ -44,30 +44,29 @@ int main (int argc, char** argv) {
     });
     etugl::Camera& camera = window.camera(); 
 
-    // Create vao with VBO + EBO + Layout
     etugl::VertexArray vao(
         vertices, indices, 
-        etugl::VertexLayout()
+        etugl::VertexLayout() 
             .add<etugl::LayoutType::Float3>(0) 
             .add<etugl::LayoutType::Float2>(1) 
     ); 
  
     vao.bind(); 
-    // Create program with VertexShader + FragmentShader
     etugl::Program program(path/"vert.glsl", path/"frag.glsl"); 
 
-    program.bind();
+    program.bind(); 
 
     size_t num_primitives = primitives.size();
     LOG_INFO("Setting up {} primitives from JSON", num_primitives);
     for (int i = 0; i < num_primitives; ++i) {
         const PrimitiveInfo& primitive = primitives[i]; 
-        etugl::mat4f inv_matrix = glm::inverse(primitive.matrix);
+        const etugl::mat4f inverse_matrix = glm::inverse(primitive.matrix);
+
         std::string base_name = "u_Primitives[" + std::to_string(i) + "]";
-        program.set_vec4f(base_name + ".color",      primitive.color);
-        program.set_float(base_name + ".type",       primitive.type);
-        program.set_mat4f(base_name + ".matrix",     primitive.matrix);
-        program.set_mat4f(base_name + ".inv_matrix", inv_matrix); 
+        program.set_float(base_name + ".type",      primitive.type);
+        program.set_vec4f(base_name + ".color",     primitive.color);
+        program.set_mat4f(base_name + ".model",     primitive.matrix, true);
+        program.set_mat4f(base_name + ".inv_model", inverse_matrix, true); 
     } 
 
     program.set_vec2f("u_Resolution", 
@@ -86,6 +85,7 @@ int main (int argc, char** argv) {
 
         program.set_vec3f("u_ViewPos", cam_pos); 
         program.set_mat4f("u_View", view);
+        program.set_mat4f("u_InvView", glm::inverse(view));
         program.set_mat4f("u_Projection", projection); 
 
         vao.draw();
